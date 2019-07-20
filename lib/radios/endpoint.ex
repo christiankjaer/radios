@@ -45,11 +45,23 @@ defmodule Radios.Endpoint do
     to_response(conn, :badrequest)
   end
 
+  defp is_stringlist?(ls) do
+    case ls do
+      [] -> true
+      [x | xs] -> is_bitstring(x) and is_stringlist?(xs)
+    end
+  end
+
+
   @spec store_radio(Plug.Conn.t(), integer(), String.t(), list(String.t())) :: Plug.Conn.t()
   defp store_radio(conn, id, radio_alias, locs)
-       when is_bitstring(radio_alias) and is_list(locs) do
-    Radios.store(Radios, id, radio_alias, locs)
-    to_response(conn, :ok)
+  when is_bitstring(radio_alias) do
+    if is_stringlist?(locs) do
+      Radios.store(Radios, id, radio_alias, locs)
+      to_response(conn, :ok)
+    else
+      to_response(conn, :badrequest)
+    end
   end
 
   defp store_radio(conn, _, _, _) do
